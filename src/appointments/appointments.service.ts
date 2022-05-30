@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { orderBy } from 'lodash';
 import { DoctorsRepository } from '../doctors/doctors.repository';
-import { CreateAppointmentDto, GetRelevantDoctorDto } from './dto/create-appointment.dto';
+import { CreateAppointmentDto} from './dto/create-appointment.dto';
 import { isTimestampBetween } from '../utils';
+import { GetRelevantDoctorDto } from './dto/get-relevant-doctor.dto';
 
 @Injectable()
 export class AppointmentsService {
