@@ -5,5 +5,6 @@ export class GetRelevantDoctorDto {
 }
 
 export class CreateAppointmentDto {
-
+  name: string;
+  date: number;
 }

@@ -1,19 +1,24 @@
-import { Controller, Get, Post, Body, Query, Logger, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, BadRequestException, HttpCode } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { isValidDate } from '../utils';
 
 @Controller('appointments')
 export class AppointmentsController {
-  private readonly logger = new Logger(AppointmentsService.name)
-
   constructor(
     private readonly appointmentsService: AppointmentsService,
   ) {}
 
-  // TODO: implement
   @Post()
+  @HttpCode(200)
   create(@Body() createAppointmentDto: CreateAppointmentDto) {
-    return this.appointmentsService.findAll();
+    const isAvailable = this.appointmentsService.isAvailable(createAppointmentDto);
+
+    if (!isAvailable) {
+      throw new BadRequestException();
+    }
+
+    // logic to book an appointment
   }
 
   @Get()
@@ -22,13 +27,8 @@ export class AppointmentsController {
     @Query('date') date: number,
     @Query('minScore') minScore: number,
   ): string[] {
-    this.logger.log({
-      specialty,
-      date,
-      minScore,
-    });
-
-    if (!specialty) {
+    // ideally we should use pipes for that
+    if (!specialty || !isValidDate(date)) {
       throw new BadRequestException();
     }
 

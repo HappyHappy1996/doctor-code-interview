@@ -1,36 +1,30 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { orderBy } from 'lodash';
 import { DoctorsRepository } from '../doctors/doctors.repository';
-import { GetRelevantDoctorDto } from './dto/create-appointment.dto';
+import { CreateAppointmentDto, GetRelevantDoctorDto } from './dto/create-appointment.dto';
 import { isTimestampBetween } from '../utils';
 
 @Injectable()
 export class AppointmentsService {
-  private readonly logger = new Logger(AppointmentsService.name)
-
   constructor(
     private readonly repository: DoctorsRepository,
   ) {}
 
-  findAll() {
-    return this.repository.find();
-  }
+  findRelevant(getRelevantDoctorDto: GetRelevantDoctorDto): string[] {
+    const relevantDoctors = this.repository.findRelevant(
+      getRelevantDoctorDto.specialty, getRelevantDoctorDto.minScore, getRelevantDoctorDto.date,
+    );
 
-  findOne(name: string) {
-    return this.repository.find().find(doctor => doctor.name === name);
-  }
-
-  findRelevant(getRelevantDoctorDto: GetRelevantDoctorDto) {
-    const allDoctors = this.repository.find();
-
-    const unsortedRelevantDoctors = allDoctors
-      // case insensitive
-      .filter(doctor => doctor.specialties.map(specialty => specialty.toUpperCase()).includes(getRelevantDoctorDto.specialty.toUpperCase()))
-      .filter(doctor => doctor.score >= getRelevantDoctorDto.minScore)
-      .filter(doctor => doctor.availableDates.find(range => isTimestampBetween(getRelevantDoctorDto.date, range.from, range.to)))
-      .sort();
-
-    return orderBy(unsortedRelevantDoctors, ['score'], ['desc'])
+    return orderBy(relevantDoctors, ['score'], ['desc'])
       .map(doctor => doctor.name);
+  }
+
+  isAvailable(createAppointmentDto: CreateAppointmentDto): boolean {
+    const doctor = this.repository.findOneByName(createAppointmentDto.name)
+    if (!doctor) return false;
+
+    const foundRange = doctor.availableDates.find(range => isTimestampBetween(createAppointmentDto.date, range.from, range.to))
+
+    return !!foundRange;
   }
 }

@@ -8,11 +8,11 @@ export class DoctorsService {
   ) {}
 
   findAll() {
-    return this.repository.find();
+    return this.repository.findAll();
   }
 
   findOne(name: string) {
-    return this.repository.find().find(doctor => doctor.name === name);
+    return this.repository.findOneByName(name);
   }
 
 }
